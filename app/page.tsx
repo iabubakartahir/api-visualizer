@@ -1,103 +1,128 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useMemo, useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import {
+  AppBar,
+  Box,
+  Container,
+  CssBaseline,
+  IconButton,
+  Tab,
+  Tabs,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import LiveTvIcon from "@mui/icons-material/LiveTv";
+import PublicIcon from "@mui/icons-material/Public";
+
+import CharacterSearch from "../components/CharacterSearch";
+import EpisodeList from "../components/EpisodeList";
+import LocationExplorer from "../components/LocationExplorer";
+
+function getTheme(mode: "light" | "dark") {
+  return createTheme({
+    palette: {
+      mode,
+      primary: { main: mode === "light" ? "#2563eb" : "#90caf9" },
+      secondary: { main: mode === "light" ? "#14b8a6" : "#80cbc4" },
+      background: {
+        default: mode === "light" ? "#f6f7fb" : "#0b0f19",
+        paper: mode === "light" ? "#ffffff" : "#111827",
+      },
+    },
+    shape: { borderRadius: 14 },
+    typography: {
+      fontFamily: [
+        "Inter",
+        "-apple-system",
+        "Segoe UI",
+        "Roboto",
+        "Helvetica",
+        "Arial",
+        "sans-serif",
+      ].join(","),
+      h4: { fontWeight: 700, letterSpacing: 0.2 },
+    },
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: { boxShadow: "0 8px 24px rgba(0,0,0,0.08)" },
+        },
+      },
+    },
+  });
+}
+
+export default function Page() {
+  const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
+  const [mode, setMode] = useState<"light" | "dark">(prefersDark ? "dark" : "light");
+  const theme = useMemo(() => getTheme(mode), [mode]);
+
+  // stable QueryClient
+  const [qc] = useState(() => new QueryClient());
+
+  const [tab, setTab] = useState(0);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <QueryClientProvider client={qc}>
+        <AppBar position="sticky" color="transparent" elevation={0}>
+          <Toolbar>
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 800 }}>
+              API Visualization App
+            </Typography>
+            <IconButton
+              aria-label="toggle theme"
+              color="inherit"
+              onClick={() => setMode((m) => (m === "light" ? "dark" : "light"))}
+            >
+              {mode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
+            </IconButton>
+          </Toolbar>
+          <Box sx={{ px: 2, pb: 1 }}>
+            <Tabs
+              value={tab}
+              onChange={(_, v) => setTab(v)}
+              textColor="primary"
+              indicatorColor="primary"
+              variant="scrollable"
+              allowScrollButtonsMobile
+            >
+              <Tab icon={<PersonSearchIcon />} iconPosition="start" label="Characters" />
+              <Tab icon={<LiveTvIcon />} iconPosition="start" label="Episodes" />
+              <Tab icon={<PublicIcon />} iconPosition="start" label="Locations" />
+            </Tabs>
+          </Box>
+        </AppBar>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Box
+          sx={{
+            minHeight: "100vh",
+            background:
+              mode === "light"
+                ? "linear-gradient(180deg,#f6f7fb 0%, #eef2ff 40%, #fff 100%)"
+                : "linear-gradient(180deg,#0b0f19 0%, #0b1224 40%, #0b0f19 100%)",
+            py: { xs: 2, md: 4 },
+          }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <Container maxWidth="lg">
+            {tab === 0 && <CharacterSearch />}
+            {tab === 1 && <EpisodeList />}
+            {tab === 2 && <LocationExplorer />}
+          </Container>
+        </Box>
+
+        {/* Devtools – optional, helps debugging */}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
